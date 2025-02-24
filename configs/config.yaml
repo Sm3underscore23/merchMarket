@@ -1,10 +1,14 @@
-port: "8000"
+port: "8080"
 
 
 db:
   username: "postgres"
-  password: "1234"
+  password: "DB_PASSWORD"
   host: "localhost"
   port: "5432"
   dbname: "postgres"
   sslmode: "disable"
+
+auth:
+  salt: "SALT"
+  signedKey: "SIGNEDKEY"

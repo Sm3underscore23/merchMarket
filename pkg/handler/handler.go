@@ -18,9 +18,9 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 	api := router.Group("/api")
 	{
-		api.GET("/info", h.getInfo)
-		api.POST("/sendCoin", h.sendCoins)
-		api.GET("/buy/:id", h.buyItem)
+		api.GET("/info", h.userIdentity, h.getInfo)
+		api.POST("/sendCoin", h.userIdentity, h.sendCoins)
+		api.GET("/buy/:slug", h.userIdentity, h.buyItem)
 		api.POST("/auth", h.singUpIn)
 	}
 
