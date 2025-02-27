@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -11,6 +10,7 @@ import (
 
 const (
 	authorizationHeader = "Authorization"
+	ctxUserId           = "UserId"
 )
 
 func (h *Handler) userIdentity(c *gin.Context) {
@@ -23,20 +23,30 @@ func (h *Handler) userIdentity(c *gin.Context) {
 	headerParts := strings.Split(header, " ")
 	if len(headerParts) != 2 {
 		newErrorResponse(c, http.StatusUnauthorized, "invalid auth header")
+		return
+	}
+
+	if headerParts[0] != "Bearer" {
+		newErrorResponse(c, http.StatusUnauthorized, "invalid auth header")
+		return
+	}
+
+	if headerParts[1] == "" {
+		newErrorResponse(c, http.StatusUnauthorized, "empty token")
+		return
 	}
 
 	id, err := h.service.Authorization.ParseToken(headerParts[1])
 	if err != nil {
-		newErrorResponse(c, http.StatusUnauthorized, err.Error())
+		newErrorResponse(c, http.StatusUnauthorized, customerrors.ErrParseToken.Error())
+		return
 	}
 
-	fmt.Println("Miidleware - idInt -", id)
-
-	c.Set("UserId", id)
+	c.Set(ctxUserId, id)
 }
 
 func getIdFromCtx(c *gin.Context) (int, error) {
-	id, ok := c.Get("UserId")
+	id, ok := c.Get(ctxUserId)
 	if !ok {
 		newErrorResponse(c, http.StatusInternalServerError, customerrors.ErrUserNotFound.Error())
 		return 0, customerrors.ErrUserNotFound

@@ -25,7 +25,7 @@ func (r *TransactionPostgres) AddP2PTransaction(fromUserID, toUserID, amount int
 	query := fmt.Sprintf(`INSERT INTO %s (from_user, to_user, amount) VALUES ($1, $2, $3)`, transactionsTable)
 	_, err = tx.Exec(query, fromUserID, toUserID, amount)
 	if err != nil {
-		return fmt.Errorf("add transaction error")
+		return customerrors.ErrAddTrxToList
 	}
 
 	err = tx.Commit()
@@ -35,4 +35,3 @@ func (r *TransactionPostgres) AddP2PTransaction(fromUserID, toUserID, amount int
 
 	return nil
 }
-

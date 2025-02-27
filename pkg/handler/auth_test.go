@@ -21,49 +21,49 @@ func TestHandler_singUpIn(t *testing.T) {
 	)
 
 	testTable := []struct {
-		name                string
-		inputBody           string
-		mockBehavior        mockBehavior
-		inputUser           models.AuthRequest
-		expectedStatusCode  int
-		expectedRequestBody string
+		name                 string
+		inputBody            string
+		mockBehavior         mockBehavior
+		inputUser            models.AuthRequest
+		expectedStatusCode   int
+		expectedResponseBody string
 	}{
 		{
 			name:      "OK",
-			inputBody: `{"username":"testusername","password":"testpassword"}`,
+			inputBody: `{"username":"test_username","password":"test_password"}`,
 			inputUser: models.AuthRequest{
-				Username: "testusername",
-				Password: "testpassword",
+				Username: "test_username",
+				Password: "test_password",
 			},
 			mockBehavior: func(
 				s *mock_service.MockAuthorization,
 				authRequest models.AuthRequest,
 			) {
-				s.EXPECT().AuthUser(authRequest.Username, authRequest.Password).Return("testtoken1234", nil)
+				s.EXPECT().AuthUser(authRequest.Username, authRequest.Password).Return("test_token", nil)
 			},
-			expectedStatusCode:  200,
-			expectedRequestBody: `{"token":"testtoken1234"}`,
+			expectedStatusCode:   200,
+			expectedResponseBody: `{"token":"test_token"}`,
 		},
 		{
 			name:      "Empty Fields",
-			inputBody: `{"username":"testusername"}`,
+			inputBody: `{"username":"test_username"}`,
 			mockBehavior: func(
 				s *mock_service.MockAuthorization,
 				authRequest models.AuthRequest,
 			) {
 			},
 			expectedStatusCode: 400,
-			expectedRequestBody: fmt.Sprintf(
+			expectedResponseBody: fmt.Sprintf(
 				`{"errors":"%s"}`,
-				customerrors.ErrInvalidInputBody.Error(),
+				customerrors.ErrInvalidInputBody,
 			),
 		},
 		{
 			name:      "Service failure",
-			inputBody: `{"username":"testusername","password":"testpassword"}`,
+			inputBody: `{"username":"test_username","password":"test_password"}`,
 			inputUser: models.AuthRequest{
-				Username: "testusername",
-				Password: "testpassword",
+				Username: "test_username",
+				Password: "test_password",
 			},
 			mockBehavior: func(
 				s *mock_service.MockAuthorization,
@@ -78,9 +78,9 @@ func TestHandler_singUpIn(t *testing.T) {
 				)
 			},
 			expectedStatusCode: 500,
-			expectedRequestBody: fmt.Sprintf(
+			expectedResponseBody: fmt.Sprintf(
 				`{"errors":"%s"}`,
-				customerrors.ErrDatabase.Error(),
+				customerrors.ErrDatabase,
 			),
 		},
 	}
@@ -107,9 +107,12 @@ func TestHandler_singUpIn(t *testing.T) {
 
 			r.ServeHTTP(w, req)
 
-			if testCase.expectedStatusCode != w.Code ||
-				testCase.expectedRequestBody != w.Body.String() {
-				t.Error("stutus codes or request bodies are different")
+			if testCase.expectedStatusCode != w.Code {
+				t.Error("stutus codes are different")
+			}
+
+			if testCase.expectedResponseBody != w.Body.String() {
+				t.Error("response bodies are different")
 			}
 		})
 	}

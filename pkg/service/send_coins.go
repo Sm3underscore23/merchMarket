@@ -1,8 +1,6 @@
 package service
 
 import (
-	"fmt"
-
 	"github.com/Sm3underscore23/merchStore/internal/customerrors"
 	"github.com/Sm3underscore23/merchStore/pkg/repository"
 )
@@ -34,7 +32,6 @@ func (s *SendCoinsService) SendCoins(toUserUsername string, fromUserId, amount i
 
 	err = s.userProviderRepo.ChangeUserBalance(fromUserId, amount*-1)
 	if err != nil {
-		fmt.Println("fromUserId")
 		return err
 	}
 

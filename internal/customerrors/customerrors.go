@@ -16,12 +16,15 @@ var (
 
 	ErrWrongPassword = fmt.Errorf("wrong password error") // StatusUnauthorized
 
+	ErrParseToken     = fmt.Errorf("imopsible to parse token error")
 	ErrParseInventory = fmt.Errorf("imopsible to parse transaction error")    // StatusInternalServerError
 	ErrParseTrx       = fmt.Errorf("imopsible to parse inventory item error") // StatusInternalServerError
 
 	ErrGetBalance    = fmt.Errorf("get balance error")      // StatusInternalServerError
 	ErrChangeBalance = fmt.Errorf("not enoghf coins error") // StatusBadRequest
 	ErrUpdateBalance = fmt.Errorf("update balance error")   // StatusInternalServerError
+
+	ErrAddTrxToList = fmt.Errorf("add transaction error") // StatusInternalServerError
 
 	ErrSendCoinsToYousel = fmt.Errorf("it is impossible to send coins to yourself error") // StatusBadRequest
 
@@ -43,7 +46,8 @@ func ClassifyError(err error) (int, string) {
 		errors.Is(err, ErrParseTrx) ||
 
 		errors.Is(err, ErrTxStart) ||
-		errors.Is(err, ErrTxStop) {
+		errors.Is(err, ErrTxStop) ||
+		errors.Is(err, ErrAddTrxToList) {
 		return http.StatusInternalServerError, err.Error()
 	}
 

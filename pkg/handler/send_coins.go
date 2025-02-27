@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/Sm3underscore23/merchStore/internal/customerrors"
@@ -13,13 +12,12 @@ func (h *Handler) sendCoins(c *gin.Context) {
 	var input models.SendCoinRequest
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, customerrors.ErrInvalidInputBody.Error())
 		return
 	}
 
-	fmt.Println(input.Receiver, input.Coins)
-
 	senderUserID, err := getIdFromCtx(c)
+
 	if err != nil {
 		return
 	}
