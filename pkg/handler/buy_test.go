@@ -152,9 +152,6 @@ func TestHandler_buyItem(t *testing.T) {
 
 			r.ServeHTTP(w, req)
 
-			fmt.Println(testCase.expectedStatusCode, w.Code)
-			fmt.Println(testCase.expectedResponseBody, w.Body.String())
-
 			if testCase.expectedStatusCode != w.Code {
 				t.Error("stutus codes are different")
 			}

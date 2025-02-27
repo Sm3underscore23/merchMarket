@@ -21,6 +21,12 @@ func (s *GetUserInfoServece) GetUserInfo(id int) (models.UserInfoResponse, error
 	userInfo, err := s.repoUserProvider.GetUserInfo(id)
 
 	if err != nil {
+		// ErrTxStart
+		// ErrTxStop
+		// ErrGetBalance
+		// ErrDatabase
+		// ErrParseInventory
+		// ErrParseTrx
 		return userInfo, err
 	}
 
