@@ -109,7 +109,7 @@ func TestHandler_sendCoins(t *testing.T) {
 				serviceSC *mock_service.MockSendCoins,
 				sendCoinsRequest models.SendCoinRequest,
 			) {
-			}, // Не мокаем сервис, так как middleware сразу вернет 401
+			},
 			expectedStatusCode:   401,
 			expectedResponseBody: `{"errors":"empty auth header"}`,
 		},
@@ -126,7 +126,6 @@ func TestHandler_sendCoins(t *testing.T) {
 			expectedStatusCode:   401,
 			expectedResponseBody: fmt.Sprintf(`{"errors":"%s"}`, customerrors.ErrParseToken),
 		},
-
 		{
 			name:      "Get balance error",
 			inputBody: testInputBody,
