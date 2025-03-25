@@ -18,8 +18,7 @@ func (h *Handler) getInfo(c *gin.Context) {
 
 	userInfo, err = h.service.Info.GetUserInfo(userId)
 	if err != nil {
-		statusCode, message := customerrors.ClassifyError(err)
-		newErrorResponse(c, statusCode, message)
+		models.NewErrorResponse(c, customerrors.ErrWithStatus[err], err.Error())
 		return
 	}
 

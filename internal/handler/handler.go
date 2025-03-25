@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/Sm3underscore23/merchStore/pkg/service"
+	"github.com/Sm3underscore23/merchStore/internal/service"
 	"github.com/gin-gonic/gin"
 )
 

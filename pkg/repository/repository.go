@@ -1,34 +1,48 @@
 package repository
 
 import (
-	merchstore "github.com/Sm3underscore23/merchStore"
+	"github.com/Sm3underscore23/merchStore/internal/models"
 	"github.com/jmoiron/sqlx"
 )
 
 type Authorization interface {
-	CreateUser(username, password_hash string) error
-	GetUser(username, password_hash string) (int, error)
+	CheckPassword_hash(id int, password_hash string) error
 }
 
-type UserInfo interface {
-	GetUserInfo(user merchstore.User) (interface{}, error)
+type UserProvider interface {
+	GetUserId(username string) (int, error)
+	ChangeUserBalance(id, coins int) error
+	CreateUser(username, password_hash string) (int, error)
+	GetUserInfo(id int) (models.UserInfoResponse, error)
 }
 
-type Buy interface {
+type InventoryManager interface {
+	AddItemToInventory(userID, itemID int) error
+	// GetUserInventory(userID int) ([]InventoryItem, error)
 }
 
-type SendCoins interface {
+type Product interface {
+	GetProductIdAndPrice(productType string) (int, int, error)
+}
+
+type Transaction interface {
+	AddP2PTransaction(fromUserID, toUserID, amount int) error
 }
 
 type Repository struct {
 	Authorization
-	UserInfo
-	Buy
-	SendCoins
+	UserProvider
+	InventoryManager
+	Product
+	Transaction
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
-		Authorization: NewAuthPostgres(db),
+		Authorization:    NewAuthPostgres(db),
+		UserProvider:     NewUserProviderPostgres(db),
+		InventoryManager: NewInventoryManagerPostgres(db),
+		Product:          NewProductPostgres(db),
+		Transaction:      NewTransactionPostgres(db),
 	}
 }

@@ -8,23 +8,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) singUpIn(c *gin.Context) {
-	var input models.AuthRequest
+func (h *Handler) sendCoins(c *gin.Context) {
+	var input models.SendCoinRequest
 
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, customerrors.ErrInvalidInputBody.Error())
 		return
 	}
 
-	token, err := h.service.Authorization.AuthUser(input.Username, input.Password)
+	senderUserID, err := getIdFromCtx(c)
 
+	if err != nil {
+		return
+	}
+
+	err = h.service.SendCoins.SendCoins(input.Receiver, senderUserID, input.Coins)
 	if err != nil {
 		statusCode, message := customerrors.ClassifyError(err)
 		newErrorResponse(c, statusCode, message)
 		return
 	}
-
-	c.JSON(http.StatusOK, models.AuthResponse{
-		Token: token,
-	})
 }

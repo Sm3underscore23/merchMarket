@@ -1,0 +1,15 @@
+port: "8080"
+
+
+db:
+  username: "testusername"
+  password: "DB_PASSWORD"
+  host: "testhost"
+  port: "testport"
+  dbname: "testdbname"
+  sslmode: "testsslmode"
+
+auth:
+  salt: "SALT"
+  signedKey: "SIGNEDKEY"
+  

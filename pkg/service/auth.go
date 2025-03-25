@@ -1,7 +1,7 @@
 package service
 
 import (
-	"crypto/sha1"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"time"
@@ -9,14 +9,11 @@ import (
 	"github.com/dgrijalva/jwt-go"
 
 	"github.com/Sm3underscore23/merchStore/internal/customerrors"
+	"github.com/Sm3underscore23/merchStore/internal/models"
 	"github.com/Sm3underscore23/merchStore/pkg/repository"
 )
 
-const (
-	salt      = "jernfn32esck4334ejrkf54"
-	signedKey = "ejfnw67qd732vbewx38"
-	tokenTTL  = 12 * time.Hour
-)
+const tokenTTL = 12 * time.Hour
 
 type tokenClaims struct {
 	jwt.StandardClaims
@@ -24,28 +21,61 @@ type tokenClaims struct {
 }
 
 type AuthService struct {
-	repo repository.Authorization
+	authRepo         repository.Authorization
+	userProviderRepo repository.UserProvider
+	authConfig       models.AuthConfig
 }
 
-func NewAuthService(repo repository.Authorization) *AuthService {
-	return &AuthService{repo: repo}
-}
-
-func (s *AuthService) GetUser(username, password string) (int, error) {
-	id, err := s.repo.GetUser(username, generatePasswordHash(password))
-	if errors.Is(err, customerrors.ErrUserNotFound) {
-		if err := s.CreateUser(username, password); err != nil {
-			return 0, err
-		}
-	} else if errors.Is(err, customerrors.ErrWrongPasswod) {
-		return 0, err
+func NewAuthService(
+	authRepo repository.Authorization,
+	userProviderRepo repository.UserProvider,
+	authConfig models.AuthConfig,
+) *AuthService {
+	return &AuthService{
+		authRepo:         authRepo,
+		userProviderRepo: userProviderRepo,
+		authConfig:       authConfig,
 	}
-	return id, nil
 }
 
-func (s *AuthService) CreateUser(username, password string) error {
-	password_hash := generatePasswordHash(password)
-	return s.repo.CreateUser(username, password_hash)
+func generatePasswordHash(password string, salt string) string {
+	hash := sha256.New()
+	hash.Write([]byte(password))
+	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
+}
+
+func (s *AuthService) AuthUser(username, password string) (string, error) {
+	id, err := s.userProviderRepo.GetUserId(username)
+	if errors.Is(err, customerrors.ErrUserNotFound) {
+		id, err = s.userProviderRepo.CreateUser(
+			username,
+			generatePasswordHash(
+				password,
+				s.authConfig.Salt,
+			))
+		if err != nil {
+			return "", err
+		}
+	} else if err != nil {
+		return "", err
+	}
+
+	err = s.authRepo.CheckPassword_hash(id,
+		generatePasswordHash(
+			password,
+			s.authConfig.Salt,
+		))
+
+	if err != nil {
+		return "", err
+	}
+
+	token, err := s.GenerateToken(id)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func (s *AuthService) GenerateToken(id int) (string, error) {
@@ -57,12 +87,29 @@ func (s *AuthService) GenerateToken(id int) (string, error) {
 		id,
 	})
 
+	signedKey := s.authConfig.SignedKey
+
 	return token.SignedString([]byte(signedKey))
 }
 
-func generatePasswordHash(password string) string {
-	hash := sha1.New()
-	hash.Write([]byte(password))
+func (s *AuthService) ParseToken(accessToken string) (int, error) {
+	signedKey := s.authConfig.SignedKey
+	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid sighing method")
+		}
+		return []byte(signedKey), nil
+	})
 
-	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
+	if err != nil {
+		return 0, err
+	}
+
+	claims, ok := token.Claims.(*tokenClaims)
+
+	if !ok {
+		return 0, errors.New("token claims are not type *tokenClaims")
+	}
+
+	return claims.UserId, nil
 }

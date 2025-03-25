@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/Sm3underscore23/merchStore/internal/customerrors"
+	"github.com/Sm3underscore23/merchStore/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,10 +15,8 @@ func (h *Handler) buyItem(c *gin.Context) {
 	}
 
 	err = h.service.Buy.Buy(userId, productType)
-
 	if err != nil {
-		statusCode, message := customerrors.ClassifyError(err)
-		newErrorResponse(c, statusCode, message)
+		models.NewErrorResponse(c, customerrors.ErrWithStatus[err], err.Error())
 		return
 	}
 }

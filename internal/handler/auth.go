@@ -10,17 +10,14 @@ import (
 
 func (h *Handler) singUpIn(c *gin.Context) {
 	var input models.AuthRequest
-
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, customerrors.ErrInvalidInputBody.Error())
+		models.NewErrorResponse(c, http.StatusBadRequest, customerrors.ErrInvalidInputBody.Error())
 		return
 	}
 
 	token, err := h.service.Authorization.AuthUser(input.Username, input.Password)
-
 	if err != nil {
-		statusCode, message := customerrors.ClassifyError(err)
-		newErrorResponse(c, statusCode, message)
+		models.NewErrorResponse(c, customerrors.ErrWithStatus[err], err.Error())
 		return
 	}
 
